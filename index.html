@@ -1,0 +1,13 @@
+<!doctype html><meta name=viewport content=width=device-width><title>Tiny Block QR</title><style>*{margin:0;overflow:hidden;touch-action:none}canvas{width:100vw;height:100vh}</style><canvas id=c></canvas><script>
+// Plays the game that lives in the address after "#", which comes from the QR code and never reaches the
+// server: this page is only the player. The game is deflate-raw compressed JavaScript, written as one number
+// in base 43 (most significant digit first) with the characters of a QR code's alphanumeric mode, behind a 1 byte.
+const A = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ$*+-./:', s = decodeURI(location.hash.slice(1)).toUpperCase(), b = [];
+let n = 0n;
+for (const c of s) n = n * 43n + BigInt(A.indexOf(c));
+let hex = n.toString(16);
+if (hex.length % 2) hex = '0' + hex;
+for (let i = 2; i < hex.length; i += 2) b.push(parseInt(hex.slice(i, i + 2), 16));
+new Response(new Blob([new Uint8Array(b)]).stream().pipeThrough(new DecompressionStream('deflate-raw'))).text()
+	.then(code => (0, eval)(code), () => document.body.append('Scan the QR code to play.'));
+</script>
